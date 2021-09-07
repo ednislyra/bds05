@@ -1,13 +1,20 @@
 package com.devsuperior.movieflix.repositories;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
 
 import com.devsuperior.movieflix.entities.Review;
-import com.devsuperior.movieflix.entities.User;
 
+@Repository
 public interface ReviewRepository extends JpaRepository<Review, Long> {
 
-	Page<Review> findByUser(User user, Pageable pageable);
+	@Query(nativeQuery = true,
+			value = "SELECT r.id, r.text, r.movie_id, r.user_id, u.name, u.email "
+					+ "FROM tb_review r "
+					+ "JOIN tb_user u ON u.id = r.user_id "
+					+ "WHERE r.movie_id = :id")
+	List<Review> findReviewByMovieId(Long id);
 }

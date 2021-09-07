@@ -1,37 +1,53 @@
 package com.devsuperior.movieflix.services;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.devsuperior.movieflix.entities.Review;
 import com.devsuperior.movieflix.entities.User;
 import com.devsuperior.movieflix.entities.dto.ReviewDTO;
-import com.devsuperior.movieflix.entities.dto.ReviewRevisionDTO;
+import com.devsuperior.movieflix.repositories.MovieRepository;
 import com.devsuperior.movieflix.repositories.ReviewRepository;
+import com.devsuperior.movieflix.repositories.UserRepository;
 
 @Service
 public class ReviewService {
 
 	@Autowired
-	private ReviewRepository repository;
-	
+	ReviewRepository repository;
+
 	@Autowired
-	private AuthService authService;
-	
+	UserRepository userRepository;
+
+	@Autowired
+	MovieRepository movieRepository;
+
+	@Autowired
+	AuthService authService;
+
 	@Transactional(readOnly = true)
-	public Page<ReviewDTO> reviewsForCurrentUser(Pageable pageable){
-		User user = authService.authenticated();
-		Page<Review> page = repository.findByUser(user, pageable);
-		return page.map(x -> new ReviewDTO(x));
+	public List<ReviewDTO> findAll() {
+		List<Review> list = repository.findAll();
+		return list.stream().map(x -> new ReviewDTO(x)).collect(Collectors.toList());
 	}
-	
-	@Transactional
-	public void saveRevision(Long id, ReviewRevisionDTO dto) {
-		Review review = repository.getOne(id);
-		review.setText(dto.getText());
-		repository.save(review);
+
+	@Transactional()
+	public ReviewDTO insert(ReviewDTO dto) {
+		User user = authService.authenticated();
+		Review entity = new Review();
+		copyDtoToEntity(dto, entity, user);
+		entity = repository.save(entity);
+		return new ReviewDTO(entity, user);
+	}
+
+	private void copyDtoToEntity(ReviewDTO dto, Review entity, User user) {
+		entity.setId(dto.getId());
+		entity.setText(dto.getText());
+		entity.setUser(user);
+		entity.setMovie(movieRepository.getOne(dto.getMovieId()));
 	}
 }

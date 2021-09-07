@@ -1,33 +1,56 @@
 package com.devsuperior.movieflix.entities.dto;
-
 import java.io.Serializable;
 
-import com.devsuperior.movieflix.entities.Review;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
-public class ReviewDTO implements Serializable{
+import com.devsuperior.movieflix.entities.Review;
+import com.devsuperior.movieflix.entities.User;
+
+public class ReviewDTO implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	private Long id;
+	@NotBlank
+	@Size(max = 255)
 	private String text;
-	private Long userId;
+	@NotNull
 	private Long movieId;
-	
+	private UserDTO user;
+
 	public ReviewDTO() {
+
 	}
 
-	public ReviewDTO(Long id, String text, Long userId, Long movieId) {
-			super();
-			this.id = id;
-			this.text = text;
-			this.userId = userId;
-			this.movieId = movieId;
-		}
-
+	public ReviewDTO(Long id, String text, Long movieId, UserDTO user) {
+		super();
+		this.id = id;
+		this.text = text;
+		this.movieId = movieId;
+		this.user = user;
+	}
+	
 	public ReviewDTO(Review entity) {
 		id = entity.getId();
 		text = entity.getText();
-		userId = entity.getUser().getId();
 		movieId = entity.getMovie().getId();
+		user = convertUserToUserDTO(entity.getUser());
+	}
+	
+	public ReviewDTO(Review entity, User user) {
+		id = entity.getId();
+		text = entity.getText();
+		movieId = entity.getMovie().getId();
+		this.user = convertUserToUserDTO(user);
+	}
+	
+	private UserDTO convertUserToUserDTO(User entity) {
+		UserDTO dto = new UserDTO();
+		dto.setId(entity.getId());
+		dto.setName(entity.getName());
+		dto.setEmail(entity.getEmail());
+		return dto;
 	}
 
 	public Long getId() {
@@ -46,20 +69,20 @@ public class ReviewDTO implements Serializable{
 		this.text = text;
 	}
 
-	public Long getUserId() {
-		return userId;
-	}
-
-	public void setUserId(Long userId) {
-		this.userId = userId;
-	}
-
 	public Long getMovieId() {
 		return movieId;
 	}
 
 	public void setMovieId(Long movieId) {
 		this.movieId = movieId;
+	}
+
+	public UserDTO getUser() {
+		return user;
+	}
+
+	public void setUser(UserDTO user) {
+		this.user = user;
 	}
 
 	@Override
